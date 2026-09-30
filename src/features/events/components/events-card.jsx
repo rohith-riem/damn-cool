@@ -1,18 +1,15 @@
-// EventCard.jsx
 import { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
-import { cn } from "@/lib/utils";
 import {
-  Calendar,
-  Clock,
-  MapPin,
+  CalendarDays,
+  Clock3,
   CalendarPlus,
   X,
   Globe,
   Apple,
   Calendar as CalendarIcon,
 } from "lucide-react";
-import { formatEventDate } from "@/lib/format-event-date";
+import { cn } from "@/lib/utils";
 import { useTranslation } from "@/lib/i18n";
 import { useMotionPreset } from "@/lib/motion";
 
@@ -30,22 +27,17 @@ const Modal = ({ isOpen, onClose, children }) => {
             animate="visible"
             exit="exit"
             onClick={onClose}
-            className={cn("fixed inset-0 bg-black/50 backdrop-blur-sm z-[60]")}
+            className="fixed inset-0 z-[60] bg-[#3d101d]/50 backdrop-blur-sm"
           />
+
           <motion.div
             variants={fadeUp}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className={cn(
-              "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[70] w-[90%] max-w-sm",
-            )}
+            className="fixed left-1/2 top-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2"
           >
-            <div
-              className={cn(
-                "bg-white transform -translate-x-1/2 -translate-y-1/2 rounded-2xl p-6 shadow-2xl border border-gray-100",
-              )}
-            >
+            <div className="border border-[#b79b62]/40 bg-[#faf5e8] p-6 shadow-2xl">
               {children}
             </div>
           </motion.div>
@@ -55,189 +47,244 @@ const Modal = ({ isOpen, onClose, children }) => {
   );
 };
 
-const CalendarButton = ({ icon: Icon, label, onClick, className = "" }) => (
+const CalendarButton = ({ icon: Icon, label, onClick }) => (
   <motion.button
     onClick={onClick}
-    className={cn(
-      "flex items-center space-x-3 w-full p-4 rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors",
-      className,
-    )}
-    whileHover={{ scale: 1.02 }}
+    whileHover={{ y: -2 }}
     whileTap={{ scale: 0.98 }}
+    className={cn(
+      "flex w-full items-center gap-4 border border-[#b79b62]/30",
+      "bg-[#fffaf0] px-4 py-3.5 text-left",
+      "transition-colors hover:border-[#8d1730]/40 hover:bg-[#f8f0dc]",
+    )}
   >
-    <Icon className={cn("w-5 h-5")} />
-    <span className={cn("text-gray-700 font-medium")}>{label}</span>
+    <Icon className="h-5 w-5 shrink-0 text-[#8d1730]" />
+    <span className="font-sans text-sm tracking-wide text-[#3d101d]">
+      {label}
+    </span>
   </motion.button>
 );
 
-/**
- * SingleEventCard component displays an event card with options to add the event
- * to various calendars (Google Calendar, Apple Calendar, and Outlook Calendar).
- *
- * @component
- * @param {Object} props - Component props.
- * @param {Object} props.eventData - Object containing event data.
- * @param {string} props.eventData.date - The date of the event (expected format: YYYY-MM-DD).
- * @param {string} props.eventData.startTime - The start time of the event (expected format: HH:mm).
- * @param {string} props.eventData.endTime - The end time of the event (expected format: HH:mm).
- * @param {string} props.eventData.title - The title of the event.
- * @param {string} props.eventData.description - A description of the event.
- * @param {string} props.eventData.location - The location where the event takes place.
- * @param {string} props.eventData.timeZone - The time zone of the event.
- *
- * @example
- * const eventData = {
- *   date: '2023-10-15',
- *   startTime: '14:00',
- *   endTime: '16:00',
- *   title: 'Wedding Ceremony - Reception',
- *   description: 'Join us to celebrate the wedding ceremony and reception.',
- *   location: 'Sunset Gardens',
- *   timeZone: 'Asia/Jakarta'
- * };
- *
- * <SingleEventCard eventData={eventData} />
- *
- * @returns {JSX.Element} A JSX element representing the event card.
- */
 const SingleEventCard = ({ eventData }) => {
   const { t } = useTranslation();
   const [showCalendarModal, setShowCalendarModal] = useState(false);
+
   const fadeUp = useMotionPreset("fadeUp");
 
-  const googleCalendarLink = () => {
-    const startDate = new Date(`${eventData.date}T${eventData.startTime}:00`);
-    const endDate = new Date(`${eventData.date}T${eventData.endTime}:00`);
+  const formatDisplayDate = (dateString) => {
+    const date = new Date(`${dateString}T12:00:00`);
 
-    const formatDate = (date) => {
-      return date.toISOString().replace(/-|:|\.\d+/g, "");
+    return {
+      day: date.toLocaleDateString("en-IN", {
+        day: "2-digit",
+      }),
+      month: date.toLocaleDateString("en-IN", {
+        month: "long",
+      }),
+      year: date.toLocaleDateString("en-IN", {
+        year: "numeric",
+      }),
+      weekday: date.toLocaleDateString("en-IN", {
+        weekday: "long",
+      }),
     };
+  };
 
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(eventData.title)}&dates=${formatDate(startDate)}/${formatDate(endDate)}&details=${encodeURIComponent(eventData.description)}&location=${encodeURIComponent(eventData.location)}&ctz=${eventData.timeZone}`;
+  const date = formatDisplayDate(eventData.date);
+
+  const googleCalendarLink = () => {
+    const start = `${eventData.date.replace(/-/g, "")}T${eventData.startTime.replace(
+      /:/g,
+      "",
+    )}00`;
+
+    const end = `${eventData.date.replace(/-/g, "")}T${eventData.endTime.replace(
+      /:/g,
+      "",
+    )}00`;
+
+    const params = new URLSearchParams({
+      action: "TEMPLATE",
+      text: eventData.title,
+      dates: `${start}/${end}`,
+      details:
+        eventData.description ||
+        "Wedding Reception of Sruthi K & Rohith A C",
+      location: `${eventData.location}, ${eventData.address}`,
+      ctz: "Asia/Kolkata",
+    });
+
+    return `https://calendar.google.com/calendar/render?${params.toString()}`;
   };
 
   const generateICSContent = () => {
-    const startDate = new Date(`${eventData.date}T${eventData.startTime}:00`);
-    const endDate = new Date(`${eventData.date}T${eventData.endTime}:00`);
+    const start = `${eventData.date.replace(/-/g, "")}T${eventData.startTime.replace(
+      /:/g,
+      "",
+    )}00`;
 
-    const formatICSDate = (date) => {
-      return date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-    };
+    const end = `${eventData.date.replace(/-/g, "")}T${eventData.endTime.replace(
+      /:/g,
+      "",
+    )}00`;
 
     return `BEGIN:VCALENDAR
 VERSION:2.0
+PRODID:-//Sruthi & Rohith//Wedding Reception//EN
+CALSCALE:GREGORIAN
 BEGIN:VEVENT
-URL:${window.location.href}
-DTSTART:${formatICSDate(startDate)}
-DTEND:${formatICSDate(endDate)}
+DTSTART;TZID=Asia/Kolkata:${start}
+DTEND;TZID=Asia/Kolkata:${end}
 SUMMARY:${eventData.title}
-DESCRIPTION:${eventData.description}
-LOCATION:${eventData.location}
+DESCRIPTION:${eventData.description || "Wedding Reception of Sruthi K & Rohith A C"}
+LOCATION:${eventData.location}, ${eventData.address}
+URL:${window.location.href}
 END:VEVENT
 END:VCALENDAR`;
   };
 
   const downloadICSFile = () => {
     const icsContent = generateICSContent();
+
     const blob = new Blob([icsContent], {
       type: "text/calendar;charset=utf-8",
     });
+
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.href = URL.createObjectURL(blob);
-    link.download = `${eventData.title.toLowerCase().replace(/ /g, "-")}.ics`;
+
+    link.href = url;
+    link.download = "sruthi-rohith-reception.ics";
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
   };
 
   return (
-    <div className={cn("relative")}>
+    <div className="relative">
       <motion.div
-        className={cn(
-          "bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4",
-        )}
         variants={fadeUp}
         initial="hidden"
-        animate="visible"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.2 }}
+        className="relative overflow-hidden border border-[#b79b62]/45 bg-[#fffaf0]"
       >
-        <div className={cn("flex justify-between items-center")}>
-          <h3 className={cn("text-xl font-semibold text-gray-800")}>
-            {eventData.title.split(" - ")[0]}
-          </h3>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className={cn(
-              "text-rose-500 hover:text-rose-600 transition-colors",
-            )}
-            onClick={() => setShowCalendarModal(true)}
-          >
-            <CalendarPlus className={cn("w-5 h-5")} />
-          </motion.button>
-        </div>
-        <div className={cn("space-y-3 text-gray-600")}>
-          <div className={cn("flex items-center space-x-3")}>
-            <Calendar className={cn("w-5 h-5 text-rose-500")} />
-            <span>{formatEventDate(eventData.date)}</span>
+        {/* Decorative top line */}
+        <div className="h-px w-full bg-[#b79b62]/60" />
+
+        <div className="p-6 sm:p-8">
+          {/* Small label */}
+          <div className="mb-5 flex items-center justify-center gap-3">
+            <span className="h-px w-8 bg-[#b79b62]/50" />
+            <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-[#8d1730]">
+              Wedding Reception
+            </span>
+            <span className="h-px w-8 bg-[#b79b62]/50" />
           </div>
-          <div className={cn("flex items-center space-x-3")}>
-            <Clock className={cn("w-5 h-5 text-rose-500")} />
-            <span>
-              {eventData.startTime?.substring(0, 5) || eventData.startTime} -{" "}
-              {eventData.endTime?.substring(0, 5) || eventData.endTime}
+
+          {/* Date */}
+          <div className="text-center">
+            <p className="font-serif text-5xl leading-none text-[#8d1730] sm:text-6xl">
+              {date.day}
+            </p>
+
+            <p className="mt-2 font-serif text-xl text-[#3d101d] sm:text-2xl">
+              {date.month} {date.year}
+            </p>
+
+            <p className="mt-1 font-sans text-xs uppercase tracking-[0.25em] text-[#8b7860]">
+              {date.weekday}
+            </p>
+          </div>
+
+          {/* Brass divider */}
+          <div className="my-7 flex items-center justify-center gap-3">
+            <span className="h-px w-12 bg-[#b79b62]/40" />
+            <span className="h-1.5 w-1.5 rotate-45 border border-[#b79b62] bg-[#faf5e8]" />
+            <span className="h-px w-12 bg-[#b79b62]/40" />
+          </div>
+
+          {/* Time */}
+          <div className="flex items-center justify-center gap-3 text-center">
+            <Clock3 className="h-4 w-4 text-[#b08d4f]" />
+            <span className="font-serif text-lg text-[#3d101d]">
+              {eventData.startTime} – {eventData.endTime}
             </span>
           </div>
-          <div className={cn("flex items-center space-x-3")}>
-            <MapPin className={cn("w-5 h-5 text-rose-500")} />
-            <span>{eventData.location}</span>
-          </div>
+
+          {/* Calendar button */}
+          <motion.button
+            onClick={() => setShowCalendarModal(true)}
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.98 }}
+            className="mx-auto mt-7 flex items-center gap-2 border border-[#8d1730] px-5 py-2.5 font-sans text-[10px] uppercase tracking-[0.2em] text-[#8d1730] transition-colors hover:bg-[#8d1730] hover:text-[#fffaf0]"
+          >
+            <CalendarPlus className="h-4 w-4" />
+            Add to Calendar
+          </motion.button>
         </div>
+
+        {/* Decorative bottom line */}
+        <div className="h-1 bg-[#0d4b3e]" />
       </motion.div>
+
+      {/* Calendar Modal */}
       <Modal
         isOpen={showCalendarModal}
         onClose={() => setShowCalendarModal(false)}
       >
-        <div className={cn("space-y-6")}>
-          <div className={cn("flex items-center justify-between")}>
-            <h3 className={cn("text-xl font-semibold text-gray-800")}>
-              {t("events.addToCalendar")}
-            </h3>
+        <div className="space-y-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="font-sans text-[10px] uppercase tracking-[0.25em] text-[#8d1730]">
+                Save the date
+              </p>
+
+              <h3 className="mt-2 font-serif text-2xl text-[#3d101d]">
+                Add to Calendar
+              </h3>
+            </div>
+
             <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.08 }}
+              whileTap={{ scale: 0.92 }}
               onClick={() => setShowCalendarModal(false)}
-              className={cn("text-gray-500 hover:text-gray-700")}
+              className="text-[#8b7860] transition-colors hover:text-[#8d1730]"
+              aria-label="Close"
             >
-              <X className={cn("w-5 h-5")} />
+              <X className="h-5 w-5" />
             </motion.button>
           </div>
 
-          <div className={cn("space-y-3")}>
+          <div className="space-y-3">
             <CalendarButton
-              icon={(props) => (
-                <Globe {...props} className={cn("w-5 h-5 text-rose-500")} />
-              )}
-              label={t("events.googleCalendar")}
-              onClick={() => window.open(googleCalendarLink(), "_blank")}
+              icon={Globe}
+              label="Google Calendar"
+              onClick={() => {
+                window.open(googleCalendarLink(), "_blank");
+                setShowCalendarModal(false);
+              }}
             />
 
             <CalendarButton
-              icon={(props) => (
-                <Apple {...props} className={cn("w-5 h-5 text-gray-900")} />
-              )}
-              label={t("events.appleCalendar")}
-              onClick={downloadICSFile}
+              icon={Apple}
+              label="Apple Calendar"
+              onClick={() => {
+                downloadICSFile();
+                setShowCalendarModal(false);
+              }}
             />
 
             <CalendarButton
-              icon={(props) => (
-                <CalendarIcon
-                  {...props}
-                  className={cn("w-5 h-5 text-blue-600")}
-                />
-              )}
-              label={t("events.outlookCalendar")}
-              onClick={downloadICSFile}
+              icon={CalendarIcon}
+              label="Outlook / Download .ics"
+              onClick={() => {
+                downloadICSFile();
+                setShowCalendarModal(false);
+              }}
             />
           </div>
         </div>
@@ -246,10 +293,9 @@ END:VCALENDAR`;
   );
 };
 
-// Main EventCards component that handles multiple events
 const EventCards = ({ events }) => {
   return (
-    <div className={cn("space-y-4")}>
+    <div className="mx-auto w-full max-w-xl">
       {events.map((event, index) => (
         <SingleEventCard key={index} eventData={event} />
       ))}
