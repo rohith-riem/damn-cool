@@ -1,8 +1,7 @@
 import { useTranslation } from "@/lib/i18n";
 import { useConfig } from "@/features/invitation/hooks/use-config";
-import { formatEventDate } from "@/lib/format-event-date";
 import { motion } from "motion/react";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Heart } from "lucide-react";
 import {
   useMotionPreset,
   staggerContainer,
@@ -12,7 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 
 const LandingPage = ({ onOpenInvitation }) => {
-  const config = useConfig(); // Use hook to get config from API or fallback to static
+  const config = useConfig();
   const reduceMotion = useReducedMotionFlag();
   const fade = useMotionPreset("fade");
   const fadeUp = useMotionPreset("fadeUp");
@@ -23,133 +22,158 @@ const LandingPage = ({ onOpenInvitation }) => {
       variants={fade}
       initial="hidden"
       animate="visible"
-      className={cn("min-h-screen relative overflow-hidden")}
+      className="min-h-screen relative overflow-hidden bg-white"
     >
-      {/* Decorative Background */}
-      <div
-        className={cn(
-          "absolute inset-0 bg-gradient-to-b from-white via-rose-50/30 to-white",
-        )}
-      />
-      <div
-        className={cn(
-          "absolute top-0 right-0 w-64 h-64 md:w-96 md:h-96 bg-rose-100/20 rounded-full blur-3xl translate-x-1/2 -translate-y-1/2",
-        )}
-      />
-      <div
-        className={cn(
-          "absolute bottom-0 left-0 w-64 h-64 md:w-96 md:h-96 bg-pink-100/20 rounded-full blur-3xl -translate-x-1/2 translate-y-1/2",
-        )}
-      />
+      {/* Soft background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-white via-rose-50/30 to-white" />
 
-      {/* Main Content */}
-      <div
-        className={cn(
-          "relative z-10 min-h-screen flex flex-col items-center justify-center px-4",
-        )}
-      >
+      <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-rose-100/20 blur-3xl" />
+
+      <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-pink-100/20 blur-3xl" />
+
+      {/* Main content */}
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-5 py-10">
         <motion.div
           variants={staggerContainer()}
           initial="hidden"
           animate="visible"
-          className={cn("w-full max-w-md")}
+          className="w-full max-w-lg"
         >
-          {/* Card Container */}
-          <div
-            className={cn(
-              "backdrop-blur-sm bg-white/50 p-6 sm:p-8 md:p-10 rounded-2xl border border-rose-100/50 shadow-xl",
-            )}
-          >
-            {/* Top Decorative Line */}
-            <div
-              className={cn(
-                "flex items-center justify-center gap-3 mb-6 sm:mb-8",
-              )}
-            >
-              <div className={cn("h-px w-12 sm:w-16 bg-rose-200/50")} />
-              <div className={cn("w-2 h-2 rounded-full bg-rose-300")} />
-              <div className={cn("h-px w-12 sm:w-16 bg-rose-200/50")} />
-            </div>
+          <div className="text-center">
 
-            {/* Date and Time */}
+            {/* Small decorative heart */}
             <motion.div
               variants={fadeUp}
-              className={cn("flex flex-col gap-4 mb-6 sm:mb-8 items-center")}
+              className="flex items-center justify-center gap-3 mb-8"
             >
-              <div
-                className={cn(
-                  "inline-flex flex-col items-center space-y-1 bg-white/80 px-4 sm:px-6 py-2 sm:py-3 rounded-xl",
-                )}
-              >
-                <Calendar className={cn("w-5 h-5 text-rose-400")} />
-                <p className={cn("text-gray-700 font-medium")}>
-                  {formatEventDate(config.date)}
-                </p>
-              </div>
+              <div className="h-px w-12 sm:w-16 bg-rose-200" />
 
-              <div
-                className={cn(
-                  "inline-flex flex-col items-center space-y-1 bg-white/80 px-4 sm:px-6 py-2 sm:py-3 rounded-xl",
-                )}
-              >
-                <Clock className={cn("w-5 h-5 text-rose-400")} />
-                <p className={cn("text-gray-700 font-medium")}>{config.time}</p>
-              </div>
+              <Heart
+                className="w-4 h-4 text-rose-400 fill-rose-100"
+                strokeWidth={1.5}
+              />
+
+              <div className="h-px w-12 sm:w-16 bg-rose-200" />
             </motion.div>
 
-            {/* Couple Names */}
+            {/* Invitation label */}
+            <motion.p
+              variants={fadeUp}
+              className="text-xs sm:text-sm uppercase tracking-[0.25em] text-rose-500 mb-6"
+            >
+              Wedding Reception
+            </motion.p>
+
+            {/* Couple names */}
+            <motion.div variants={fadeUp}>
+              <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl font-medium text-gray-800 tracking-tight">
+                {config.brideName}
+              </h1>
+
+              <div className="flex items-center justify-center gap-4 my-2">
+                <div className="h-px w-10 sm:w-14 bg-rose-200" />
+
+                <span className="font-serif text-2xl sm:text-3xl italic text-rose-500">
+                  &
+                </span>
+
+                <div className="h-px w-10 sm:w-14 bg-rose-200" />
+              </div>
+
+              <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl font-medium text-gray-800 tracking-tight">
+                {config.groomName}
+              </h1>
+            </motion.div>
+
+            {/* Invitation text */}
+            <motion.p
+              variants={fadeUp}
+              className="mt-7 text-sm sm:text-base leading-7 text-gray-500 max-w-md mx-auto"
+            >
+              With the blessings of our families,
+              <br />
+              we invite you to celebrate with us.
+            </motion.p>
+
+            {/* Date */}
             <motion.div
               variants={fadeUp}
-              className={cn("text-center space-y-4")}
+              className="flex items-center justify-center gap-2 mt-8 text-gray-700"
             >
-              <div className={cn("space-y-2")}>
-                <h1
-                  className={cn(
-                    "text-3xl sm:text-4xl md:text-5xl font-serif text-gray-800 leading-tight",
-                  )}
-                >
-                  {config.groomName}
-                  <span className={cn("text-rose-400 mx-2 sm:mx-3")}>&</span>
-                  {config.brideName}
-                </h1>
-                <div className={cn("h-px w-16 sm:w-24 mx-auto bg-rose-200")} />
-              </div>
+              <Calendar className="w-4 h-4 text-rose-500" />
+
+              <span className="text-sm sm:text-base font-medium">
+                22 November 2026
+              </span>
             </motion.div>
 
-            {/* Open Invitation Button */}
-            <motion.div variants={fadeUp} className={cn("mt-6 sm:mt-8")}>
+            {/* Venue */}
+            <motion.p
+              variants={fadeUp}
+              className="mt-2 text-xs sm:text-sm text-gray-400"
+            >
+              Krishna Pillai Memorial Auditorium · Kozhikode
+            </motion.p>
+
+            {/* Open invitation */}
+            <motion.div
+              variants={fadeUp}
+              className="mt-9"
+            >
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={onOpenInvitation}
                 className={cn(
-                  "group relative w-full bg-rose-500 text-white px-6 py-3 sm:px-8 sm:py-3 rounded-xl font-medium shadow-lg hover:bg-rose-600 transition-all duration-200",
+                  "group relative inline-flex items-center justify-center",
+                  "min-w-[210px] px-8 py-3.5",
+                  "bg-rose-500 text-white",
+                  "rounded-xl font-medium",
+                  "shadow-lg shadow-rose-200/50",
+                  "hover:bg-rose-600",
+                  "transition-all duration-200",
+                  "overflow-hidden"
                 )}
               >
-                <span
-                  className={cn(
-                    "relative z-10 flex items-center justify-center gap-2",
-                  )}
-                >
+                <span className="relative z-10 flex items-center justify-center gap-2">
                   <span>{t("landing.openInvitation")}</span>
+
                   <motion.span
-                    animate={reduceMotion ? undefined : { x: [0, 4, 0] }}
+                    animate={
+                      reduceMotion ? undefined : { x: [0, 4, 0] }
+                    }
                     transition={
                       reduceMotion
                         ? undefined
-                        : { repeat: Infinity, duration: LOOP.nudge }
+                        : {
+                            repeat: Infinity,
+                            duration: LOOP.nudge,
+                          }
                     }
                   >
                     →
                   </motion.span>
                 </span>
-                <div
-                  className={cn(
-                    "absolute inset-0 bg-gradient-to-r from-rose-600 to-rose-500 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200",
-                  )}
-                />
+
+                <div className="absolute inset-0 bg-gradient-to-r from-rose-600 to-rose-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
               </motion.button>
             </motion.div>
+
+            {/* Bottom decoration */}
+            <motion.div
+              variants={fadeUp}
+              className="flex items-center justify-center gap-3 mt-10"
+            >
+              <div className="h-px w-16 bg-rose-100" />
+
+              <Heart
+                className="w-3.5 h-3.5 text-rose-300 fill-rose-50"
+                strokeWidth={1.5}
+              />
+
+              <div className="h-px w-16 bg-rose-100" />
+            </motion.div>
+
           </div>
         </motion.div>
       </div>
