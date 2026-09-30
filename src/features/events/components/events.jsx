@@ -1,88 +1,90 @@
 import EventCards from "@/features/events/components/events-card";
 import { useConfig } from "@/features/invitation/hooks/use-config";
 import { motion } from "motion/react";
-import { Heart } from "lucide-react";
 import { useMotionPreset, staggerContainer } from "@/lib/motion";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
 
 export default function Events() {
-  const config = useConfig(); // Use hook to get config from API or fallback to static
+  const config = useConfig();
+
   const fade = useMotionPreset("fade");
-  const { t } = useTranslation();
   const fadeUp = useMotionPreset("fadeUp");
   const scaleIn = useMotionPreset("scaleIn");
 
   return (
-    <>
-      {/* Event Section */}
-      <section
-        id="event"
-        className={cn("min-h-screen relative overflow-hidden")}
+    <section
+      id="event"
+      className={cn(
+        "relative overflow-hidden bg-[#efe4ca] py-20 sm:py-28",
+      )}
+    >
+      {/* Subtle South Indian inspired top border */}
+      <div className="absolute left-0 top-0 h-2 w-full bg-[#0d4b3e]" />
+
+      {/* Decorative background detail */}
+      <div className="pointer-events-none absolute left-1/2 top-12 h-40 w-40 -translate-x-1/2 rounded-full border border-[#b79b62]/15" />
+
+      <motion.div
+        variants={fade}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.15 }}
+        className="relative z-10 mx-auto max-w-5xl px-5"
       >
+        {/* Section heading */}
         <motion.div
-          variants={fade}
+          variants={staggerContainer()}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true }}
-          className={cn("relative z-10 container mx-auto px-4 py-20")}
+          className="mb-12 text-center sm:mb-16"
         >
-          {/* Section Header */}
           <motion.div
-            variants={staggerContainer()}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className={cn("text-center space-y-4 mb-16")}
+            variants={scaleIn}
+            className="mb-5 flex items-center justify-center gap-3"
           >
-            <motion.span
-              variants={fadeUp}
-              className={cn("inline-block text-rose-500 font-medium mb-2")}
-            >
-              {t("events.saveTheDate")}
-            </motion.span>
+            <span className="h-px w-10 bg-[#b79b62]/50" />
 
-            <motion.h2
-              variants={fadeUp}
-              className={cn(
-                "text-4xl md:text-5xl font-serif text-gray-800 leading-tight",
-              )}
-            >
-              {t("events.title")}
-            </motion.h2>
+            <span className="h-1.5 w-1.5 rotate-45 border border-[#b79b62] bg-[#efe4ca]" />
 
-            <motion.p
-              variants={fadeUp}
-              className={cn("text-gray-500 max-w-md mx-auto")}
-            >
-              {t("events.subtitle")}
-            </motion.p>
-
-            {/* Decorative Line */}
-            <motion.div
-              variants={scaleIn}
-              className={cn("flex items-center justify-center gap-4 mt-6")}
-            >
-              <div className={cn("h-[1px] w-12 bg-rose-200")} />
-              <div className={cn("text-rose-400")}>
-                <Heart className={cn("w-4 h-4")} fill="currentColor" />
-              </div>
-              <div className={cn("h-[1px] w-12 bg-rose-200")} />
-            </motion.div>
+            <span className="h-px w-10 bg-[#b79b62]/50" />
           </motion.div>
 
-          {/* Events Grid */}
-          <motion.div
+          <motion.p
             variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            className={cn("max-w-2xl mx-auto")}
+            className="font-sans text-[10px] uppercase tracking-[0.35em] text-[#8d1730]"
           >
-            <EventCards events={config.agenda} />
-          </motion.div>
+            Save the date
+          </motion.p>
+
+          <motion.h2
+            variants={fadeUp}
+            className="mt-3 font-serif text-4xl leading-tight text-[#3d101d] sm:text-5xl"
+          >
+            The Reception
+          </motion.h2>
+
+          <motion.p
+            variants={fadeUp}
+            className="mx-auto mt-4 max-w-md font-serif text-sm italic leading-relaxed text-[#786b58]"
+          >
+            An evening of celebration, family and togetherness.
+          </motion.p>
         </motion.div>
-      </section>
-    </>
+
+        {/* Event card */}
+        <motion.div
+          variants={fadeUp}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.15 }}
+        >
+          <EventCards events={config.agenda} />
+        </motion.div>
+      </motion.div>
+
+      {/* Bottom decorative border */}
+      <div className="absolute bottom-0 left-0 h-2 w-full bg-[#8d1730]" />
+    </section>
   );
 }
