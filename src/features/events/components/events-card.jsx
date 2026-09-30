@@ -10,7 +10,6 @@ import {
   Calendar as CalendarIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "@/lib/i18n";
 import { useMotionPreset } from "@/lib/motion";
 
 const Modal = ({ isOpen, onClose, children }) => {
@@ -27,7 +26,7 @@ const Modal = ({ isOpen, onClose, children }) => {
             animate="visible"
             exit="exit"
             onClick={onClose}
-            className="fixed inset-0 z-[60] bg-[#3d101d]/50 backdrop-blur-sm"
+            className="fixed inset-0 z-[60] bg-gray-900/40 backdrop-blur-sm"
           />
 
           <motion.div
@@ -37,7 +36,7 @@ const Modal = ({ isOpen, onClose, children }) => {
             exit="exit"
             className="fixed left-1/2 top-1/2 z-[70] w-[calc(100%-2rem)] max-w-sm -translate-x-1/2 -translate-y-1/2"
           >
-            <div className="border border-[#b79b62]/40 bg-[#faf5e8] p-6 shadow-2xl">
+            <div className="border border-rose-100 bg-white p-6 shadow-2xl rounded-2xl">
               {children}
             </div>
           </motion.div>
@@ -53,20 +52,21 @@ const CalendarButton = ({ icon: Icon, label, onClick }) => (
     whileHover={{ y: -2 }}
     whileTap={{ scale: 0.98 }}
     className={cn(
-      "flex w-full items-center gap-4 border border-[#b79b62]/30",
-      "bg-[#fffaf0] px-4 py-3.5 text-left",
-      "transition-colors hover:border-[#8d1730]/40 hover:bg-[#f8f0dc]",
+      "flex w-full items-center gap-4",
+      "border border-rose-100",
+      "bg-white px-4 py-3.5 text-left rounded-xl",
+      "transition-colors hover:border-rose-200 hover:bg-rose-50/50",
     )}
   >
-    <Icon className="h-5 w-5 shrink-0 text-[#8d1730]" />
-    <span className="font-sans text-sm tracking-wide text-[#3d101d]">
+    <Icon className="h-5 w-5 shrink-0 text-rose-500" />
+
+    <span className="font-sans text-sm tracking-wide text-gray-700">
       {label}
     </span>
   </motion.button>
 );
 
 const SingleEventCard = ({ eventData }) => {
-  const { t } = useTranslation();
   const [showCalendarModal, setShowCalendarModal] = useState(false);
 
   const fadeUp = useMotionPreset("fadeUp");
@@ -93,15 +93,15 @@ const SingleEventCard = ({ eventData }) => {
   const date = formatDisplayDate(eventData.date);
 
   const googleCalendarLink = () => {
-    const start = `${eventData.date.replace(/-/g, "")}T${eventData.startTime.replace(
-      /:/g,
+    const start = `${eventData.date.replace(
+      /-/g,
       "",
-    )}00`;
+    )}T${eventData.startTime.replace(/:/g, "")}00`;
 
-    const end = `${eventData.date.replace(/-/g, "")}T${eventData.endTime.replace(
-      /:/g,
+    const end = `${eventData.date.replace(
+      /-/g,
       "",
-    )}00`;
+    )}T${eventData.endTime.replace(/:/g, "")}00`;
 
     const params = new URLSearchParams({
       action: "TEMPLATE",
@@ -118,15 +118,15 @@ const SingleEventCard = ({ eventData }) => {
   };
 
   const generateICSContent = () => {
-    const start = `${eventData.date.replace(/-/g, "")}T${eventData.startTime.replace(
-      /:/g,
+    const start = `${eventData.date.replace(
+      /-/g,
       "",
-    )}00`;
+    )}T${eventData.startTime.replace(/:/g, "")}00`;
 
-    const end = `${eventData.date.replace(/-/g, "")}T${eventData.endTime.replace(
-      /:/g,
+    const end = `${eventData.date.replace(
+      /-/g,
       "",
-    )}00`;
+    )}T${eventData.endTime.replace(/:/g, "")}00`;
 
     return `BEGIN:VCALENDAR
 VERSION:2.0
@@ -170,47 +170,49 @@ END:VCALENDAR`;
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, amount: 0.2 }}
-        className="relative overflow-hidden border border-[#b79b62]/45 bg-[#fffaf0]"
+        className="relative overflow-hidden rounded-2xl border border-rose-100 bg-white shadow-sm"
       >
-        {/* Decorative top line */}
-        <div className="h-px w-full bg-[#b79b62]/60" />
-
         <div className="p-6 sm:p-8">
-          {/* Small label */}
-          <div className="mb-5 flex items-center justify-center gap-3">
-            <span className="h-px w-8 bg-[#b79b62]/50" />
-            <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-[#8d1730]">
+          {/* Section label */}
+          <div className="mb-6 flex items-center justify-center gap-3">
+            <span className="h-px w-8 bg-rose-200" />
+
+            <span className="font-sans text-[10px] uppercase tracking-[0.3em] text-rose-500">
               Wedding Reception
             </span>
-            <span className="h-px w-8 bg-[#b79b62]/50" />
+
+            <span className="h-px w-8 bg-rose-200" />
           </div>
 
           {/* Date */}
           <div className="text-center">
-            <p className="font-serif text-5xl leading-none text-[#8d1730] sm:text-6xl">
+            <p className="font-serif text-5xl leading-none text-rose-500 sm:text-6xl">
               {date.day}
             </p>
 
-            <p className="mt-2 font-serif text-xl text-[#3d101d] sm:text-2xl">
+            <p className="mt-2 font-serif text-xl text-gray-800 sm:text-2xl">
               {date.month} {date.year}
             </p>
 
-            <p className="mt-1 font-sans text-xs uppercase tracking-[0.25em] text-[#8b7860]">
+            <p className="mt-1 font-sans text-xs uppercase tracking-[0.25em] text-gray-400">
               {date.weekday}
             </p>
           </div>
 
-          {/* Brass divider */}
+          {/* Divider */}
           <div className="my-7 flex items-center justify-center gap-3">
-            <span className="h-px w-12 bg-[#b79b62]/40" />
-            <span className="h-1.5 w-1.5 rotate-45 border border-[#b79b62] bg-[#faf5e8]" />
-            <span className="h-px w-12 bg-[#b79b62]/40" />
+            <span className="h-px w-12 bg-rose-100" />
+
+            <span className="h-1.5 w-1.5 rotate-45 border border-rose-300 bg-white" />
+
+            <span className="h-px w-12 bg-rose-100" />
           </div>
 
           {/* Time */}
           <div className="flex items-center justify-center gap-3 text-center">
-            <Clock3 className="h-4 w-4 text-[#b08d4f]" />
-            <span className="font-serif text-lg text-[#3d101d]">
+            <Clock3 className="h-4 w-4 text-rose-500" />
+
+            <span className="font-serif text-lg text-gray-700">
               {eventData.startTime} – {eventData.endTime}
             </span>
           </div>
@@ -220,15 +222,15 @@ END:VCALENDAR`;
             onClick={() => setShowCalendarModal(true)}
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
-            className="mx-auto mt-7 flex items-center gap-2 border border-[#8d1730] px-5 py-2.5 font-sans text-[10px] uppercase tracking-[0.2em] text-[#8d1730] transition-colors hover:bg-[#8d1730] hover:text-[#fffaf0]"
+            className="mx-auto mt-7 flex items-center gap-2 rounded-xl border border-rose-300 px-5 py-2.5 font-sans text-[10px] uppercase tracking-[0.2em] text-rose-500 transition-colors hover:bg-rose-500 hover:text-white"
           >
             <CalendarPlus className="h-4 w-4" />
             Add to Calendar
           </motion.button>
         </div>
 
-        {/* Decorative bottom line */}
-        <div className="h-1 bg-[#0d4b3e]" />
+        {/* Bottom accent */}
+        <div className="h-1 bg-rose-100" />
       </motion.div>
 
       {/* Calendar Modal */}
@@ -239,11 +241,11 @@ END:VCALENDAR`;
         <div className="space-y-5">
           <div className="flex items-start justify-between">
             <div>
-              <p className="font-sans text-[10px] uppercase tracking-[0.25em] text-[#8d1730]">
+              <p className="font-sans text-[10px] uppercase tracking-[0.25em] text-rose-500">
                 Save the date
               </p>
 
-              <h3 className="mt-2 font-serif text-2xl text-[#3d101d]">
+              <h3 className="mt-2 font-serif text-2xl text-gray-800">
                 Add to Calendar
               </h3>
             </div>
@@ -252,7 +254,7 @@ END:VCALENDAR`;
               whileHover={{ scale: 1.08 }}
               whileTap={{ scale: 0.92 }}
               onClick={() => setShowCalendarModal(false)}
-              className="text-[#8b7860] transition-colors hover:text-[#8d1730]"
+              className="text-gray-400 transition-colors hover:text-rose-500"
               aria-label="Close"
             >
               <X className="h-5 w-5" />
