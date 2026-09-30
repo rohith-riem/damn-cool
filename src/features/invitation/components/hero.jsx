@@ -1,321 +1,292 @@
-import { Calendar, Clock, Heart } from "lucide-react";
+import React from "react";
+import { Calendar, Clock, Heart, MapPin } from "lucide-react";
 import { motion } from "motion/react";
-import { useCallback, useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
-import { useConfig } from "@/features/invitation/hooks/use-config";
-import { formatEventDate } from "@/lib/format-event-date";
-import { getGuestName } from "@/lib/invitation-storage";
-import { useTranslation } from "@/lib/i18n";
-import {
-  useMotionPreset,
-  staggerContainer,
-  LOOP,
-  EASE,
-  useReducedMotionFlag,
-} from "@/lib/motion";
+import { useInvitation } from "@/hooks/use-invitation";
+import config from "@/config/config";
+import { useTranslation } from "react-i18next";
 
-export default function Hero() {
-  const { t } = useTranslation();
-  const config = useConfig(); // Use hook to get config from API or fallback to static
-  const [guestName, setGuestName] = useState("");
-  const reduceMotion = useReducedMotionFlag();
-  const fade = useMotionPreset("fade");
-  const fadeUp = useMotionPreset("fadeUp");
-  const scaleIn = useMotionPreset("scaleIn");
+// Animation presets
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: "easeOut",
+    },
+  },
+};
 
-  useEffect(() => {
-    // Get guest name from localStorage
-    const storedGuestName = getGuestName();
-    if (storedGuestName) {
-      setGuestName(storedGuestName);
-    }
-  }, []);
+const fadeIn = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      duration: 1,
+      ease: "easeOut",
+    },
+  },
+};
 
-  const CountdownTimer = ({ targetDate }) => {
-    const calculateTimeLeft = useCallback(() => {
-      const difference = +new Date(targetDate) - +new Date();
-      let timeLeft = {};
+// Countdown Timer
+function CountdownTimer({ targetDate }) {
+  const [timeLeft, setTimeLeft] = React.useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  });
 
-      if (difference > 0) {
-        timeLeft = {
-          [t("hero.days")]: Math.floor(difference / (1000 * 60 * 60 * 24)),
-          [t("hero.hours")]: Math.floor((difference / (1000 * 60 * 60)) % 24),
-          [t("hero.minutes")]: Math.floor((difference / 1000 / 60) % 60),
-          [t("hero.seconds")]: Math.floor((difference / 1000) % 60),
+  React.useEffect(() => {
+    const calculateTimeLeft = () => {
+      const difference =
+        new Date(targetDate).getTime() - new Date().getTime();
+
+      if (difference <= 0) {
+        return {
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
         };
       }
-      return timeLeft;
-    }, [targetDate]);
 
-    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+      return {
+        days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+        hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+        minutes: Math.floor((difference / (1000 * 60)) % 60),
+        seconds: Math.floor((difference / 1000) % 60),
+      };
+    };
 
-    useEffect(() => {
-      const timer = setInterval(() => {
-        setTimeLeft(calculateTimeLeft());
-      }, 1000);
-      return () => clearInterval(timer);
-    }, [calculateTimeLeft]);
+    setTimeLeft(calculateTimeLeft());
 
-    return (
-      <div className={cn("grid grid-cols-2 sm:grid-cols-4 gap-4 mt-8")}>
-        {Object.keys(timeLeft).map((interval) => (
-          <motion.div
-            key={interval}
-            variants={scaleIn}
-            initial="hidden"
-            animate="visible"
-            className={cn(
-              "flex flex-col items-center p-3 bg-white/80 backdrop-blur-sm rounded-xl border border-rose-100",
-            )}
-          >
-            <span className={cn("text-xl sm:text-2xl font-bold text-rose-600")}>
-              {timeLeft[interval]}
-            </span>
-            <span className={cn("text-xs text-gray-500 capitalize")}>
-              {interval}
-            </span>
-          </motion.div>
-        ))}
-      </div>
-    );
-  };
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft());
+    }, 1000);
 
-  const FloatingHearts = () => {
-    const [hearts] = useState(() =>
-      [...Array(8)].map((_, i) => ({
-        size: Math.floor(Math.random() * 2) + 8,
-        color:
-          i % 3 === 0
-            ? "text-rose-400"
-            : i % 3 === 1
-              ? "text-pink-400"
-              : "text-red-400",
-        initialX:
-          typeof window !== "undefined" ? Math.random() * window.innerWidth : 0,
-        animateX:
-          typeof window !== "undefined" ? Math.random() * window.innerWidth : 0,
-      })),
-    );
+    return () => clearInterval(timer);
+  }, [targetDate]);
 
-    return (
-      <div
-        className={cn("absolute inset-0 overflow-hidden pointer-events-none")}
-      >
-        {hearts.map((heart, i) => (
-          <motion.div
-            key={i}
-            initial={{
-              opacity: 0,
-              scale: 0,
-              x: heart.initialX,
-              y: typeof window !== "undefined" ? window.innerHeight : 0,
-            }}
-            animate={{
-              opacity: [0, 1, 1, 0],
-              scale: [0, 1, 1, 0.5],
-              x: heart.animateX,
-              y: -100,
-            }}
-            transition={{
-              duration: LOOP.float,
-              repeat: Infinity,
-              delay: i * 0.8,
-              ease: EASE.out,
-            }}
-            className={cn("absolute")}
-          >
-            <Heart
-              className={heart.color}
-              style={{
-                width: `${heart.size * 4}px`,
-                height: `${heart.size * 4}px`,
-              }}
-              fill="currentColor"
-            />
-          </motion.div>
-        ))}
-      </div>
-    );
-  };
+  const items = [
+    { label: "Days", value: timeLeft.days },
+    { label: "Hours", value: timeLeft.hours },
+    { label: "Minutes", value: timeLeft.minutes },
+    { label: "Seconds", value: timeLeft.seconds },
+  ];
 
   return (
-    <>
-      <section
-        id="home"
-        className={cn(
-          "min-h-screen flex flex-col items-center justify-center px-4 py-16 sm:py-20 text-center relative overflow-hidden",
-        )}
-      >
-        <motion.div
-          variants={staggerContainer()}
-          initial="hidden"
-          animate="visible"
-          className={cn("space-y-6 relative z-10")}
+    <motion.div
+      className="grid grid-cols-4 gap-2 sm:gap-4 max-w-xl mx-auto"
+      variants={fadeInUp}
+    >
+      {items.map((item) => (
+        <div
+          key={item.label}
+          className="bg-white/80 backdrop-blur-sm border border-rose-100 rounded-xl px-2 py-4 sm:px-4 sm:py-5 shadow-sm"
         >
-          <motion.div variants={scaleIn} className={cn("inline-block mx-auto")}>
-            <span
-              className={cn(
-                "px-4 py-1 text-sm bg-rose-50 text-rose-600 rounded-full border border-rose-200",
-              )}
-            >
-              {t("landing.saveTheDate")}
-            </span>
-          </motion.div>
-
-          <div className={cn("space-y-4")}>
-            <motion.p
-              variants={fade}
-              className={cn(
-                "text-gray-500 font-light italic text-base sm:text-lg",
-              )}
-            >
-              {t("hero.marriageTitle")}
-            </motion.p>
-            <motion.h2
-              variants={scaleIn}
-              className={cn(
-                "text-3xl sm:text-5xl font-serif bg-clip-text text-transparent bg-gradient-to-r from-rose-600 to-pink-600",
-              )}
-            >
-              {config.groomName} & {config.brideName}
-            </motion.h2>
+          <div className="text-2xl sm:text-4xl font-semibold text-rose-600 tabular-nums">
+            {String(item.value).padStart(2, "0")}
           </div>
 
-          <motion.div
-            variants={fadeUp}
-            className={cn("relative max-w-md mx-auto")}
+          <div className="mt-1 text-[10px] sm:text-xs uppercase tracking-[0.18em] text-gray-500">
+            {item.label}
+          </div>
+        </div>
+      ))}
+    </motion.div>
+  );
+}
+
+// Decorative floating petals
+function FloatingPetals() {
+  const petals = Array.from({ length: 12 });
+
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {petals.map((_, index) => (
+        <motion.div
+          key={index}
+          className="absolute text-rose-300/40"
+          style={{
+            left: `${8 + ((index * 17) % 84)}%`,
+            top: `${8 + ((index * 23) % 82)}%`,
+          }}
+          animate={{
+            y: [0, -20, 0],
+            x: [0, index % 2 === 0 ? 10 : -10, 0],
+            rotate: [0, index % 2 === 0 ? 20 : -20, 0],
+            opacity: [0.25, 0.55, 0.25],
+          }}
+          transition={{
+            duration: 4 + (index % 3),
+            repeat: Infinity,
+            delay: index * 0.35,
+            ease: "easeInOut",
+          }}
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="currentColor"
           >
-            <div
-              className={cn(
-                "absolute inset-0 bg-gradient-to-b from-rose-50/50 to-white/50 backdrop-blur-md rounded-2xl",
-              )}
-            />
+            <path d="M12 2C8 6 5 9 5 13c0 4 3 7 7 9 4-2 7-5 7-9 0-4-3-7-7-11Z" />
+          </svg>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
 
-            <div
-              className={cn(
-                "relative px-4 sm:px-8 py-8 sm:py-10 rounded-2xl border border-rose-100/50",
-              )}
-            >
-              <div
-                className={cn(
-                  "absolute top-0 left-1/2 -translate-x-1/2 -translate-y-px",
-                )}
-              >
-                <div
-                  className={cn(
-                    "w-20 sm:w-32 h-[2px] bg-gradient-to-r from-transparent via-rose-200 to-transparent",
-                  )}
-                />
-              </div>
+export default function Hero() {
+  const { guestName } = useInvitation();
+  const { t } = useTranslation();
 
-              <div className={cn("space-y-6 text-center")}>
-                <div className={cn("space-y-3")}>
-                  <motion.div
-                    variants={fade}
-                    className={cn("flex items-center justify-center space-x-2")}
-                  >
-                    <Calendar className={cn("w-4 h-4 text-rose-400")} />
-                    <span
-                      className={cn(
-                        "text-gray-700 font-medium text-sm sm:text-base",
-                      )}
-                    >
-                      {formatEventDate(config.date, "full")}
-                    </span>
-                  </motion.div>
+  return (
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-white px-5 py-16 sm:px-8">
+      <FloatingPetals />
 
-                  <motion.div
-                    variants={fade}
-                    className={cn("flex items-center justify-center space-x-2")}
-                  >
-                    <Clock className={cn("w-4 h-4 text-rose-400")} />
-                    <span
-                      className={cn(
-                        "text-gray-700 font-medium text-sm sm:text-base",
-                      )}
-                    >
-                      {config.time}
-                    </span>
-                  </motion.div>
-                </div>
+      {/* Soft background details */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 w-48 h-48 rounded-full bg-rose-50 blur-3xl opacity-70" />
 
-                <div className={cn("flex items-center justify-center gap-3")}>
-                  <div className={cn("h-px w-8 sm:w-12 bg-rose-200/50")} />
-                  <div className={cn("w-2 h-2 rounded-full bg-rose-200")} />
-                  <div className={cn("h-px w-8 sm:w-12 bg-rose-200/50")} />
-                </div>
+        <div className="absolute bottom-10 left-10 w-24 h-24 rounded-full bg-pink-50 blur-2xl opacity-60" />
 
-                <motion.div variants={fade} className={cn("space-y-2")}>
-                  <p className={cn("text-gray-500 font-serif italic text-sm")}>
-                    {t("hero.guestGreeting")}
-                  </p>
-                  <p className={cn("text-gray-600 font-medium text-sm")}>
-                    {t("hero.guestSalutation")}
-                  </p>
-                  <p className={cn("text-rose-500 font-semibold text-lg")}>
-                    {guestName || t("hero.guestFallback")}
-                  </p>
-                </motion.div>
-              </div>
+        <div className="absolute top-1/3 right-10 w-28 h-28 rounded-full bg-rose-50 blur-2xl opacity-50" />
+      </div>
 
-              <div
-                className={cn(
-                  "absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-px",
-                )}
-              >
-                <div
-                  className={cn(
-                    "w-20 sm:w-32 h-[2px] bg-gradient-to-r from-transparent via-rose-200 to-transparent",
-                  )}
-                />
-              </div>
-            </div>
+      <motion.div
+        className="relative z-10 w-full max-w-4xl mx-auto text-center"
+        initial="hidden"
+        animate="visible"
+        variants={fadeIn}
+      >
+        {/* Small decorative element */}
+        <motion.div
+          variants={fadeInUp}
+          className="flex items-center justify-center gap-3 mb-7"
+        >
+          <div className="h-px w-12 sm:w-20 bg-rose-200" />
 
-            <div
-              className={cn(
-                "absolute -top-2 -right-2 w-16 sm:w-24 h-16 sm:h-24 bg-rose-100/20 rounded-full blur-xl",
-              )}
-            />
-            <div
-              className={cn(
-                "absolute -bottom-2 -left-2 w-16 sm:w-24 h-16 sm:h-24 bg-rose-100/20 rounded-full blur-xl",
-              )}
-            />
-          </motion.div>
+          <Heart
+            className="w-4 h-4 text-rose-400 fill-rose-100"
+            strokeWidth={1.5}
+          />
 
-          <CountdownTimer targetDate={config.date} />
+          <div className="h-px w-12 sm:w-20 bg-rose-200" />
+        </motion.div>
 
-          <div className={cn("pt-6 relative")}>
-            {!reduceMotion && <FloatingHearts />}
-            <motion.div
-              animate={
-                reduceMotion
-                  ? undefined
-                  : {
-                      scale: [1, 1.1, 1],
-                      rotate: [0, 5, -5, 0],
-                    }
-              }
-              transition={
-                reduceMotion
-                  ? undefined
-                  : {
-                      duration: LOOP.pulse,
-                      repeat: Infinity,
-                      ease: EASE.inOut,
-                    }
-              }
-            >
-              <Heart
-                className={cn(
-                  "w-10 sm:w-12 h-10 sm:h-12 text-rose-500 mx-auto",
-                )}
-                fill="currentColor"
-              />
-            </motion.div>
+        {/* Reception label */}
+        <motion.div
+          variants={fadeInUp}
+          className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-rose-50 px-4 py-2 text-xs sm:text-sm font-medium tracking-[0.18em] uppercase text-rose-600 mb-7"
+        >
+          <Heart className="w-3.5 h-3.5 fill-rose-200" />
+          Wedding Reception
+        </motion.div>
+
+        {/* Couple names */}
+        <motion.div variants={fadeInUp}>
+          <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl font-medium tracking-tight text-gray-800">
+            Sruthi
+          </h1>
+
+          <div className="flex items-center justify-center gap-3 sm:gap-5 my-2">
+            <div className="h-px w-10 sm:w-16 bg-rose-200" />
+
+            <span className="font-serif text-2xl sm:text-3xl text-rose-500 italic">
+              &
+            </span>
+
+            <div className="h-px w-10 sm:w-16 bg-rose-200" />
+          </div>
+
+          <h1 className="font-serif text-5xl sm:text-6xl md:text-7xl font-medium tracking-tight text-gray-800">
+            Rohith
+          </h1>
+        </motion.div>
+
+        {/* Intro */}
+        <motion.p
+          variants={fadeInUp}
+          className="max-w-xl mx-auto mt-7 text-sm sm:text-base leading-7 text-gray-500"
+        >
+          With the blessings of our families,
+          <br className="hidden sm:block" />
+          we invite you to celebrate this special evening with us.
+        </motion.p>
+
+        {/* Date and time */}
+        <motion.div
+          variants={fadeInUp}
+          className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mt-8 text-gray-700"
+        >
+          <div className="flex items-center gap-2.5">
+            <Calendar className="w-4 h-4 text-rose-500" />
+            <span className="text-sm sm:text-base font-medium">
+              22 November 2026
+            </span>
+          </div>
+
+          <div className="hidden sm:block h-5 w-px bg-rose-200" />
+
+          <div className="flex items-center gap-2.5">
+            <Clock className="w-4 h-4 text-rose-500" />
+            <span className="text-sm sm:text-base font-medium">
+              5:00 PM – 9:00 PM
+            </span>
           </div>
         </motion.div>
-      </section>
-    </>
+
+        {/* Venue */}
+        <motion.div
+          variants={fadeInUp}
+          className="flex items-center justify-center gap-2 mt-4 text-sm text-gray-500"
+        >
+          <MapPin className="w-4 h-4 text-rose-400" />
+
+          <span>
+            Krishna Pillai Memorial Auditorium · Kovoor, Kozhikode
+          </span>
+        </motion.div>
+
+        {/* Guest greeting */}
+        {guestName && (
+          <motion.div
+            variants={fadeInUp}
+            className="mt-8 text-sm text-gray-500"
+          >
+            <span className="text-rose-500">Dear</span>{" "}
+            <span className="font-medium text-gray-700">{guestName}</span>
+          </motion.div>
+        )}
+
+        {/* Countdown */}
+        <motion.div variants={fadeInUp} className="mt-10">
+          <p className="text-[10px] sm:text-xs uppercase tracking-[0.25em] text-gray-400 mb-4">
+            Counting down to the celebration
+          </p>
+
+          <CountdownTimer targetDate="2026-11-22T17:00:00" />
+        </motion.div>
+
+        {/* Bottom decoration */}
+        <motion.div
+          variants={fadeInUp}
+          className="flex items-center justify-center gap-3 mt-10"
+        >
+          <div className="h-px w-16 bg-rose-100" />
+
+          <Heart
+            className="w-5 h-5 text-rose-400 fill-rose-100"
+            strokeWidth={1.5}
+          />
+
+          <div className="h-px w-16 bg-rose-100" />
+        </motion.div>
+      </motion.div>
+    </section>
   );
 }
